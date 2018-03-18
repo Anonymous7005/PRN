@@ -61,6 +61,8 @@ Get the 3D vertices and corresponding colours from a single image.  Save the res
 
 * opencv2 (for extracting textures)
 
+GPU is highly recommended. The run time is ~0.01s with GPU(GeForce GTX 1080) and ~0.2s with CPU(Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz).
+
 ### Usage
 
 1. Clone the repository
