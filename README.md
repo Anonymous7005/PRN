@@ -1,6 +1,8 @@
 # Joint 3D Face Reconstruction and Dense Alignment with Position Map Regression Network
 
-![prn](Docs/images/prnet.gif)
+<p align="center"> 
+<img src="Docs/images/prnet.gif">
+</p>
 
 ## Introduction
 
