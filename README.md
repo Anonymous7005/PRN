@@ -1,6 +1,6 @@
 # Joint 3D Face Reconstruction and Dense Alignment with Position Map Regression Network
 
-![prn](E:\Anonymous7005\Docs\images\prnet.gif)
+![prn](Docs/images/prnet.gif)
 
 ## Introduction
 
@@ -24,23 +24,23 @@ The main features are:
 
 ### Basics(Evaluated in paper)
 
-#### Face Alignment
+* #### Face Alignment
 
 Dense alignment of both visible and non-visible points(including 68 key points). 
 
-![alignment](E:\Anonymous7005\Docs\images\alignment.jpg)
+![alignment](Docs/images/alignment.jpg)
 
-####3D Face Reconstruction
+* #### 3D Face Reconstruction
 
 Get the 3D vertices and corresponding colors from a single image.  Save the result as mesh data, which can be open with [Meshlab](http://www.meshlab.net/) or Microsoft [3D Builder](https://developer.microsoft.com/en-us/windows/hardware/3d-print/3d-builder-resources). Notice that, the texture of non-visible area is distorted due to self-occlusion.
 
-![alignment](E:\Anonymous7005\Docs\images\reconstruct.jpg)
+![alignment](Docs/images/reconstruct.jpg)
 
 ### More(To be added)
 
-#### 3D Pose Estimation 
+* #### 3D Pose Estimation
 
-#### Texture Fusion
+* #### Texture Fusion
 
 
 
@@ -59,7 +59,7 @@ Get the 3D vertices and corresponding colors from a single image.  Save the resu
 
 * opencv2 (for extracting textures)
 
-###Usage
+### Usage
 
 1. Clone the repository
 
