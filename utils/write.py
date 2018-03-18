@@ -3,16 +3,12 @@ import numpy as np
 def write_asc(path, vertices):
     '''
     Args:
-        pos: the 3D position map. shape = (256, 256, 3).
-        v: shape = (n, 3)
-    Returns:
-        colors: the corresponding colors of vertices. shape = (num of points, 3). n is 45128 here.
+        vertices: shape = (nver, 3)
     '''
     if path.split('.')[-1] == 'asc':
         np.savetxt(path, vertices)
     else:
         np.savetxt(path + '.asc', vertices)
-
 
 
 def write_obj(obj_name, vertices, colors, triangles):
@@ -26,7 +22,7 @@ def write_obj(obj_name, vertices, colors, triangles):
     triangles = triangles.copy()
     triangles += 1 # meshlab start with 1
     
-    if path.split('.')[-1] != 'obj':
+    if obj_name.split('.')[-1] != 'obj':
         obj_name = obj + '.obj'
         
     # write obj

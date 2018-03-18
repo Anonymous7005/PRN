@@ -1,34 +1,44 @@
 import numpy as np
 import os
-from scipy.misc import imread, imsave, imresize
+from skimage.io import imread, imsave
 from skimage.transform import estimate_transform, warp
 from time import time
 
 from predictor import PosPrediction
 
 
-class FaceProcess:
+class PRN:
+    ''' Joint 3D Face Reconstruction and Dense Alignment with Position Map Regression Network
+    Args:
+        is_dlib(bool, optional): If true, dlib is used for detecting faces.
+        is_opencv(bool, optional): If true, opencv is used for extracting texture.
+        prefix(str, optional): If run at another folder, the absolute path is needed to load the data.
     '''
-    Face Reconstruction
-    Face Alignment
-    '''
-    def __init__(self, is_dlib = True, prefix = '.'):
+    def __init__(self, is_dlib = False, is_opencv = False, prefix = '.'):
+
+        # resolution of input and output image size.
         self.resolution_inp = 256
         self.resolution_op = 256
 
         #---- load detectors
         if is_dlib:
             import dlib
-            path_to_detector = os.path.join(prefix, 'Data/net-data/mmod_human_face_detector.dat')
+            detector_path = os.path.join(prefix, 'Data/net-data/mmod_human_face_detector.dat')
             self.face_detector = dlib.cnn_face_detection_model_v1(
-                    path_to_detector)
+                    detector_path)
 
-        #---- load pos net 
+        if is_opencv:
+            import cv2
+
+        #---- load PRN 
         self.pos_predictor = PosPrediction(self.resolution_inp, self.resolution_op)
-        model_path = os.path.join(prefix, 'Data/net-data/256_256_resfcn256_weight')
-        self.pos_predictor.restore(model_path)
+        prn_path = os.path.join(prefix, 'Data/net-data/256_256_resfcn256_weight')
+        if not os.path.isfile(prn_path + '.data-00000-of-00001'):
+            print("Please download the PRN model first.")
+            exit()
+        self.pos_predictor.restore(prn_path)
 
-        # file
+        # uv file
         self.uv_kpt_ind = np.loadtxt(prefix + '/Data/uv-data/uv_kpt_ind.txt').astype(np.int32) # 2 x 68 get kpt
         self.face_ind = np.loadtxt(prefix + '/Data/uv-data/face_ind.txt').astype(np.int32) # get valid vertices in the pos map
         self.triangles = np.loadtxt(prefix + '/Data/uv-data/triangles.txt').astype(np.int32) # ntri x 3
@@ -37,12 +47,20 @@ class FaceProcess:
         return self.face_detector(image, 1)
 
     def net_forward(self, image):
+        ''' The core of out method: regress the position map of a given image.
+        Args:
+            image: (256,256,3) array. value range: 0~1
+        Returns:
+            pos: the 3D position map. (256, 256, 3) array.
+        '''
         return self.pos_predictor.predict(image)
 
     def process(self, input, image_info = None):
-        '''
+        ''' process image with crop operation.
         Args:
-            image: (h,w,3). value range:1~255. 
+            input: (h,w,3) array or str(image path). image value range:1~255. 
+            image_info(optional): the bounding box information of faces. if None, will use dlib to detect face. 
+
         Returns:
             pos: the 3D position map. (256, 256, 3).
         '''
@@ -59,13 +77,13 @@ class FaceProcess:
             image = np.tile(image[:,:,np.newaxis], [1,1,3])
 
         if image_info is not None:
-            if np.max(image_info.shape) > 4: # key points
+            if np.max(image_info.shape) > 4: # key points to get bounding box
                 kpt = image_info
                 if kpt.shape[0] > 3:
                     kpt = kpt.T
                 left = np.min(kpt[0, :]); right = np.max(kpt[0, :]); 
                 top = np.min(kpt[1,:]); bottom = np.max(kpt[1,:])
-            else: # bounding box
+            else:  # bounding box
                 bbox = image_info
                 left = bbox[0]; right = bbox[1]; top = bbox[2]; bottom = bbox[3]
             old_size = (right - left + bottom - top)/2
@@ -77,7 +95,7 @@ class FaceProcess:
                 print('warning: no detected face')
                 return None
 
-            d = detected_faces[0].rect ## only use the first detected face (assume that each input image only contain one face)
+            d = detected_faces[0].rect ## only use the first detected face (assume that each input image only contains one face)
             left = d.left(); right = d.right(); top = d.top(); bottom = d.bottom()
             old_size = (right - left + bottom - top)/2
             center = np.array([right - (right - left) / 2.0, bottom - (bottom - top) / 2.0 + old_size*0.14])
@@ -123,12 +141,24 @@ class FaceProcess:
         Args:
             pos: the 3D position map. shape = (256, 256, 3).
         Returns:
-            vertices: the vertices(point cloud). shape = (num of points, 3). n is 45128 here.
+            vertices: the vertices(point cloud). shape = (num of points, 3). n is about 40K here.
         '''
         all_vertices = np.reshape(pos, [self.resolution_op**2, -1]);
         vertices = all_vertices[self.face_ind, :]
 
         return vertices
+
+    def get_texture(self, image, pos):
+        ''' extract uv texture from image. opencv is needed here.
+        Args:
+            image: input image.
+            pos: the 3D position map. shape = (256, 256, 3).
+        Returns:
+            texture: the corresponding colors of vertices. shape = (num of points, 3). n is 45128 here.
+        '''
+        texture = cv2.remap(image, pos[:,:,:2].astype(np.float32), None, interpolation=cv2.INTER_NEAREST, borderMode=cv2.BORDER_CONSTANT,borderValue=(0))
+        return texture
+
 
     def get_colors(self, image, vertices):
         '''
