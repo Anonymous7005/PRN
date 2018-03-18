@@ -4,7 +4,7 @@
 <img src="Docs/images/prnet.gif">
 </p>
 
-## Introduction
+
 
 This is an official python implementation of PRN. 
 
@@ -34,7 +34,7 @@ Dense alignment of both visible and non-visible points(including 68 key points).
 
 * #### 3D Face Reconstruction
 
-Get the 3D vertices and corresponding colors from a single image.  Save the result as mesh data, which can be open with [Meshlab](http://www.meshlab.net/) or Microsoft [3D Builder](https://developer.microsoft.com/en-us/windows/hardware/3d-print/3d-builder-resources). Notice that, the texture of non-visible area is distorted due to self-occlusion.
+Get the 3D vertices and corresponding colours from a single image.  Save the result as mesh data, which can be opened with [Meshlab](http://www.meshlab.net/) or Microsoft [3D Builder](https://developer.microsoft.com/en-us/windows/hardware/3d-print/3d-builder-resources). Notice that, the texture of non-visible area is distorted due to self-occlusion.
 
 ![alignment](Docs/images/reconstruct.jpg)
 
